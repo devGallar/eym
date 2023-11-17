@@ -1,0 +1,30 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+Wy6p8e8lZ5BouF86CY2gH92D9eQ9nJdA1" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/productos.css'%}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <title>productos</title>
+</head>
+<body>
+    <div class="container">
+        {% for pdr in productos %}
+            <div class="card">
+                <img src="{{ pdr.imagen.url }}" alt="{{pdr.nombre}}">
+                <div class="card-info">
+                    <h2>{{ pdr.nombre }}</h2>
+                    <p>Precio: ${{ pdr.precio|floatformat:0}}</p>
+                    <p>stock disponible: {{ pdr.stock }} </p>
+                    <a href="/agregarCarrito">agregar al carrito</a>
+                    <a href="/comprar">Comprar</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+</body>
+</html>

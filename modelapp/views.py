@@ -1,3 +1,7 @@
 from django.shortcuts import render
+from modelapp.models import *
 
-# Create your views here.
+def verProductos(request):
+    productos = Producto.objects.all();
+    dict = {"productos": productos}
+    return render(request,"verproductos.html",dict)
