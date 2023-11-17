@@ -23,7 +23,8 @@ from modelapp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('verproductos/',views.verProductos)
+    path('verproductos/',views.verProductos),
+    path('comprar/<int:id>', views.frmCompra)
 ]
 
 if settings.DEBUG:

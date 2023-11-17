@@ -20,8 +20,8 @@
                     <p>Precio: ${{ pdr.precio|floatformat:0}}</p>
                     <p>stock disponible: {{ pdr.stock }} </p>
                     <a href="/agregarCarrito">agregar al carrito</a>
-                    <a href="/comprar">Comprar</a>
-                </div>
+                    <a href="/comprar/{{ pdr.id }}"">Comprar</a>
+                </div> 
             </div>
         {% endfor %}
     </div>
