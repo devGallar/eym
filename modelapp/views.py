@@ -1,6 +1,11 @@
 from django.shortcuts import render
 from modelapp.models import *
 
+
+
+def index(request):
+
+    return render(request,'index.html')
 def verProductos(request):
     productos = Producto.objects.all();
     dict = {"productos": productos}
