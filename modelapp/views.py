@@ -5,5 +5,9 @@ from modelapp.models import *
 
 def index(request):
     productos = Producto.objects.all();
-    context = {"productos": productos}
+    categorias = Categoria.objects.all();
+    context = {
+        "productos": productos,
+        "categorias": categorias
+        }
     return render(request,'index.html',context)
