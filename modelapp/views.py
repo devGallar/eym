@@ -1,10 +1,13 @@
 from django.shortcuts import redirect, render,get_object_or_404
+from django.urls import reverse
 from modelapp.carrito import Cart
 from modelapp.models import *
 from django.contrib.auth.models import User
 from modelapp.forms import ClienteForm
 from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.decorators import login_required
+from paypal.standard.forms import PayPalPaymentsForm
+from django.core.mail import send_mail
 
 
 def index(request):
@@ -44,6 +47,7 @@ def productoDetalle(request,producto_id):
 
 def carrito(request):
     return render(request,'carrito.html')
+
 def agregarCarrito(request,producto_id):
     if request.method == 'POST':
         cantidad = int(request.POST['cantidad'])
@@ -213,3 +217,81 @@ def registrarPedido(request):
     }
     
     return render(request,'pedido.html',context)
+
+def confirmarPedido(request):
+    context = {}
+    if request.method == "POST":
+        #actualizamos datos de usuario
+        actUsuario = User.objects.get(pk=request.user.id)
+        actUsuario.first_name = request.POST['nombre']
+        actUsuario.last_name = request.POST['apellidos']
+        actUsuario.save()
+        #registramos o actualizamos cliente
+        try:
+            clientePedido = Cliente.objects.get(usuario=request.user)
+            clientePedido.telefono = request.POST['telefono']
+            clientePedido.direccion = request.POST['direccion']
+            clientePedido.save()
+        except:
+            clientePedido = Cliente()
+            clientePedido.usuario = actUsuario
+            clientePedido.direccion = request.POST['direccion']
+            clientePedido.telefono = request.POST['telefono']
+            clientePedido.save()
+
+        nroPedido = ''
+        montoTotal = float(request.session.get('cartMontoTotal'))
+        nuevoPedido = Pedido()
+        nuevoPedido.cliente = clientePedido
+        nuevoPedido.save()
+        
+        carritoPedido = request.session.get('cart')
+        for key,value in carritoPedido.items():
+            productoPedido = Producto.objects.get(pk=value['producto_id'])
+            detalle = PedidoDetalle()
+            detalle.pedido = nuevoPedido
+            detalle.producto = productoPedido
+            detalle.cantidad = int(value['cantidad'])
+            detalle.subtotal = float(value['subtotal'])
+            detalle.save()
+        
+      
+        nroPedido = 'PED' + nuevoPedido.fecha_registro.strftime('%Y') + str(nuevoPedido.id)
+        nuevoPedido.nro_pedido = nroPedido
+        nuevoPedido.monto_total = montoTotal
+        nuevoPedido.save()
+        
+        request.session['pedidoId'] = nuevoPedido.id
+        
+        paypal_dict = {
+        "business": "sb-kczmg28490318@business.example.com",
+        "amount": montoTotal,
+        "item_name": "PEDIDO CODIGO : "+ nroPedido,
+        "invoice": nroPedido,
+        "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+        "return": request.build_absolute_uri('/gracias'),
+        "cancel_return": request.build_absolute_uri('/')
+        }
+
+        # Create the instance.
+        formPaypal = PayPalPaymentsForm(initial=paypal_dict)
+        
+        
+        context = {
+            'pedido':nuevoPedido,
+            'formPaypal':formPaypal
+        }
+        
+        carrito = Cart(request)
+        carrito.clear()
+        
+    return render(request,'compra.html',context)
+def gracias(request):
+    paypalId = request.GET.get('PayerID',None)
+    if paypalId is not None:
+        pedidoId = request.session.get('pedidoId')
+        pedido = Pedido.objects.get(pk=pedidoId)
+        pedido.estado = '1'
+        pedido.save()
+        
+    return render(request,'gracias.html')
