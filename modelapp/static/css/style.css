@@ -11753,6 +11753,35 @@ Compare List
 28 - Footer
 ----------------------------------*/
 
+.jumbotron {
+	background-image: url('../img/hero.png');
+	background-size: cover;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	color: white;
+	padding: 100px;
+	height: 500px;
+  }
+  
+  .jumbotron h1 {
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  }
+  
+  .navbar {
+	transition: 0.3s ease-in-out;
+  }
+  
+  .navbar.scrolled {
+	background-color: #f8f9fa;
+	transition: 0.3s ease-in-out;
+  }
+  
+  .container {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+  }
+  
 
 
 
