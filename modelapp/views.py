@@ -94,30 +94,30 @@ def crearUsuario(request):
     return render(request,'login.html')
 
 def loginUsuario(request):
-    paginaDestino = request.GET.get('next',None)
+    paginaDestino = request.GET.get('next', None)
     context = {
-        'destino':paginaDestino
+        'destino': paginaDestino
     }
-    
+
     if request.method == 'POST':
         dataUsuario = request.POST['usuario']
         dataPassword = request.POST['password']
         dataDestino = request.POST['destino']
-        
-        usuarioAuth = authenticate(request,username=dataUsuario,password=dataPassword)
+
+        usuarioAuth = authenticate(request, username=dataUsuario, password=dataPassword)
         if usuarioAuth is not None:
-            login(request,usuarioAuth)
-            
-            if dataDestino != 'None':
+            login(request, usuarioAuth)
+
+            if dataDestino != 'None' and dataDestino:
                 return redirect(dataDestino)
-            
+
             return redirect('/cuenta')
         else:
             context = {
-                'mensajeError':'Datos incorrectos'
+                'mensajeError': 'Datos incorrectos'
             }
-    
-    return render(request,'login.html',context)
+
+    return render(request, 'login.html', context)
 
 def logoutUsuario(request):
     logout(request)
@@ -153,41 +153,51 @@ def cuentaUsuario(request):
     
     return render(request,'cuenta.html',context)
 
-
 def actualizarCliente(request):
     mensaje = ""
-    
+
     if request.method == "POST":
         frmCliente = ClienteForm(request.POST)
         if frmCliente.is_valid():
             dataCliente = frmCliente.cleaned_data
-            
-            #actualizar usuario
-            actUsuario = User.objects.get(pk=request.user.id)
-            actUsuario.first_name = dataCliente["nombre"]
-            actUsuario.last_name = dataCliente["apellidos"]
-            actUsuario.email = dataCliente["email"]
-            actUsuario.save()
-            
-            #registrar Cliente
-            nuevoCliente = Cliente()
-            nuevoCliente.usuario = actUsuario
-            nuevoCliente.dni = dataCliente["dni"]
-            nuevoCliente.direccion = dataCliente["direccion"]
-            nuevoCliente.telefono = dataCliente["telefono"]
-            nuevoCliente.sexo = dataCliente["sexo"]
-            nuevoCliente.fecha_nacimiento = dataCliente["fecha_nacimiento"]
-            nuevoCliente.save()
-            
+
+            # Verificar si el usuario ya tiene un cliente
+            usuario = User.objects.get(pk=request.user.id)
+            cliente_existente = Cliente.objects.filter(usuario=usuario).first()
+
+            if cliente_existente:
+                # Si existe, actualizar los datos del cliente
+                cliente_existente.dni = dataCliente["dni"]
+                cliente_existente.direccion = dataCliente["direccion"]
+                cliente_existente.telefono = dataCliente["telefono"]
+                cliente_existente.sexo = dataCliente["sexo"]
+                cliente_existente.fecha_nacimiento = dataCliente["fecha_nacimiento"]
+                cliente_existente.save()
+            else:
+                # Si no existe, crear un nuevo cliente
+                nuevoCliente = Cliente()
+                nuevoCliente.usuario = usuario
+                nuevoCliente.dni = dataCliente["dni"]
+                nuevoCliente.direccion = dataCliente["direccion"]
+                nuevoCliente.telefono = dataCliente["telefono"]
+                nuevoCliente.sexo = dataCliente["sexo"]
+                nuevoCliente.fecha_nacimiento = dataCliente["fecha_nacimiento"]
+                nuevoCliente.save()
+
+            # Actualizar datos del usuario
+            usuario.first_name = dataCliente["nombre"]
+            usuario.last_name = dataCliente["apellidos"]
+            usuario.email = dataCliente["email"]
+            usuario.save()
+
             mensaje = "Datos Actualizados"
-            
-    context ={
-        'mensaje':mensaje,
-        'frmCliente':frmCliente
+
+    context = {
+        'mensaje': mensaje,
+        'frmCliente': frmCliente
     }
-            
-    
-    return render(request,'cuenta.html',context)
+
+    return render(request, 'cuenta.html', context)
 
 @login_required(login_url='/login')
 def registrarPedido(request):
